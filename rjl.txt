@@ -1,0 +1,191 @@
+ Title="MainWindow" Height="704" Width="1100" Style="{StaticResource windowStyle}">
+    <Grid Margin="0,0,2,0">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="53*"/>
+            <RowDefinition Height="273*"/>
+            <RowDefinition Height="11*"/>
+        </Grid.RowDefinitions>
+        <Border BorderThickness="1" Background="WhiteSmoke" HorizontalAlignment="Left" Height="546" VerticalAlignment="Top" Width="244" Margin="22,0,0,0" Grid.Row="1"/>
+        <Label Content="Транспортные грузоперевозки" HorizontalAlignment="Left" Margin="328,16,0,0" VerticalAlignment="Top" Height="62" Width="544" FontSize="36"/>
+        <DataGrid AutoGenerateColumns="false" x:Name="dataGridMenu" HorizontalAlignment="Left" Height="546" Margin="302,0,0,0" VerticalAlignment="Top" Width="769" 
+                 Grid.Row="1" >
+                  
+                  
+            <DataGrid.Columns>
+
+                <DataGridTemplateColumn Header="№ заказа">
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate>
+                            <Label Tag="{Binding nomberZakaza}" Content="{Binding zaName}"></Label>
+                                
+                                   
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+
+                <DataGridTextColumn Header="Дата принятия заказа" Binding="{Binding dateZak}"></DataGridTextColumn>
+                <DataGridTextColumn Header="Объем заказа" Binding="{Binding valueZak}"></DataGridTextColumn>
+                <DataGridTextColumn Header="Сумма заказа" Binding="{Binding summaZak}"></DataGridTextColumn>
+                <DataGridTextColumn Header="Статус" Binding="{Binding statysZak}"></DataGridTextColumn>
+
+                <DataGridTemplateColumn Width ="auto">
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate>
+                            <Button  Content="Редактировать"></Button>
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+            </DataGrid.Columns>
+        </DataGrid>
+    </Grid>
+
+
+private Dispetsher dispetsher;
+        public MainWindow(Dispetsher dispetsher)
+        {
+            InitializeComponent();
+            this.dispetsher = dispetsher;
+            UpdateData();
+        }
+        public void UpdateData()
+        {
+            var massiv = from zakaz in Entities.GetContext().Zakazi
+                         join statys in Entities.GetContext().Statys on zakaz.Status equals statys.ID_st
+
+                         select new
+                         {
+                             nomberZakaza= zakaz.ID,
+                             dateZak = zakaz.Data_prin_zak,
+                             valueZak = zakaz.Volume.ToString()+" тон",
+                             summaZak = zakaz.Sum.ToString() + " руб.",
+                             statysZak = zakaz.Status
+                         };
+            dataGridMenu.ItemsSource = massiv.ToList();
+        }
+
+
+
+ <Style TargetType="{x:Type Window}" x:Key="windowStyle">
+        <Setter Property="Background" Value="#DCDCDC"></Setter>
+        <Setter Property="FontFamily" Value="Palatino Linotype"></Setter>
+        <Setter Property="FontSize" Value="18"></Setter>
+    </Style>
+
+    <Style TargetType="{x:Type Button}">
+        <Setter Property="Background" Value="#FF8C00"></Setter>
+        <Setter Property="BorderBrush" Value="#0000"></Setter>
+    </Style>
+
+
+
+
+ <Application.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="stylePril/Dictionary1.xaml"></ResourceDictionary>
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </Application.Resources>
+
+
+private static Entities _context;
+        public static Entities GetContext()
+        {
+            if (_context == null)
+                _context = new Entities();
+            return _context;
+        }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+private Zakazi _zakazi=new Zakazi();
+        public addZakazi(Zakazi zakazi)
+        {
+            InitializeComponent();
+            DataContext = _zakazi;
+            staCmB.ItemsSource = Entities.GetContext().Statys.ToList();
+
+        }
+
+       
+        private void AddBut_Click(object sender, RoutedEventArgs e)
+        {
+            StringBuilder error = new StringBuilder();
+
+            if (volumTB.SelectedText == null)
+                error.AppendLine("Вы не заполнили Дату принятия заказа");
+            if (staCmB.SelectedItem == null)
+                error.AppendLine("Вы не выбрали Статус заказа");
+            if (sumTB.SelectedText == null)
+                error.AppendLine("Вы не ввели Сумму заказа");
+
+
+            if (error.Length > 0)
+            {
+                MessageBox.Show(error.ToString());
+                return;
+            }
+  //if (_zakazi.ID == 0)
+            //    Entities.GetContext().Zakazi.Add(_zakazi);
+            //try
+            //{
+            //    Entities.GetContext().SaveChanges();
+            //    MessageBox.Show("Заказ усешно создан");
+            //    Zak.MainFrame.GoBack();
+                
+            //}
+            //catch (Exception ex)
+            //{
+            //    MessageBox.Show(ex.Message.ToString());
+            //}
+              Zakazi zakazi = new Zakazi()
+            {
+                Volume = double.Parse(volumTB.Text),
+                Sum = double.Parse(sumTB.Text),
+                Statys = staCmB.SelectedItem as Statys
+            };
+
+            //ProductsIngredient productsIngredient = new ProductsIngredient()
+            //{
+            //    Products = products,
+            //    Ingredient = ingredCmB.SelectedItem as Ingredient
+            //};
+            //DBClass.GetContext().ProductsIngredient.Add(productsIngredient);
+
+
+            Entities.GetContext().SaveChanges();
+            Entities.ApplyDataBaseChange();
+            MessageBox.Show("Заказ усешно создан");
+            Close();
+                               public Zakazi()
+                               {
+                               this.Statuss = new HashSet<Statys>();
+                                }
+                                public virtual ICollection<Statys> Statuss { get; }
